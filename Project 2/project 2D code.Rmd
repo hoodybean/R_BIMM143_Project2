@@ -1,0 +1,140 @@
+---
+title: "Multiple Sequence Analysis of HKU14 and several human CoVs"
+output: html_notebook
+---
+Scientific Question: {10 points} Can comparing spike protein sequences of several human coronaviruses, known to have been transmitted between animals and humans, with the rabbit coronavirus HKU14’s spike protein determine the potential for humans to be susceptible to the rabbit coronavirus HKU14?
+
+{10 points for description of background on the protein}
+The spike protein of coronaviruses is a major component on the surface of the virus that is responsible for the virus’ ability to infect host cells (Zhang 2020). The spike protein uses its receptor binding domain (RBD) to bind to a host cell's receptor in order to gain access to the host cell for infection (Zhai 2020). 
+
+As the spike protein play a major role in determining the virus' transmission capabilities and selection of hosts (Zhang 2020), observing sequence similarity amongst several coronaviruses' spike proteins can be used to observe potential host specificity of the rabbit coronavirus HKU14 (Kuzmin 2020). Human coronaviruses have been able to successfully infect rabbits using its spike protein to complex with the host cell's ACE2 receptor (Mykytyn 2021) and the unique residues found in ACE2 receptors suggests the ability for the spike protein of coronaviruses to adapt to a receptor (Zhai 2020). With these known, the potential for a Rabbit coronavirus to select and infect humans as hosts may exist.
+
+Scientific Hypothesis: { 10 points } If the possibility of humans being infected by the rabbit coronavirus HKU14 is present, then the HKU14 spike protein’s sequence identity compared to several human coronaviruses is more than 90%.
+
+To compare the sequences of rabbit coronavirus HKU14 with several coronaviruses known to have infected humans, a BLASTp search is conducted with the NCBI database with a selected HKU14 sequence to obtain the spike protein sequences of the 4 organisms of interest. 
+To observe sequence similarity between the spike protein sequences of the 5 coronaviruses, multiple sequence alignment (MSA) is performed with visualization using sequence logos. The visualization is focused on the range of MSA containing the receptor binding domains of the spike proteins, as it plays a critical role in the infection of hosts. 
+Analysis of the consensus sequence/bases seen in the sequence logo with comparison to the CoV at question will either prove or disprove the hypothesis, thus answering the scientific question as to whether sequence similarity can determine potential hosts of the HKU14 rabbit coronavirus.
+
+{10 points for description of work done to answer scientific question, and disprove/prove scientific hypothesis}
+I plan to use multiple sequence alignment to observe patterns and compare sequence similarity of the spike protein sequences for both the rabbit coronavirus as well as several coronaviruses known to infect humans. 
+
+
+{25 points for adequately describing the packages}:
+For the code, the following packages are required:
+1) BioConductor: This package is used to access a repository specialized for bioinformatics, allowing us to use other Bioconductor packages.
+2) Biostrings: This package is used for easy manipulation of biological sequence strings.
+3) seqinr: This package is used to read in biological sequence files into R.
+4) msa: This package is used for the performance of sequence alignment on the string set containing the sequences being analyzed.
+5) tinytex: This package is deals with LaTeX objects to support the visualization of the msa result and sequence logo through the msaPrettyPrint function in the msa package.
+  - More information regarding the tinytex package, debugging solutions, and such can be found on the website https://yihui.org/tinytex/.
+
+{2 points to write here what commands needed to be typed into the console to install the necessary packages}
+To use these packages, they must first be installed by running the following codes in the console:
+
+if (!requireNamespace("BiocManager", quietly=TRUE)) install.packages("BiocManager")
+install.packages("seqinr") 
+BiocManager::install("msa")
+install.packages('tinytex')
+tinytex::install_tinytex()
+
+```{r}
+# Load the packages after installation
+library(BiocManager)
+library(Biostrings)
+library(seqinr)
+library(msa)
+library(tinytex)
+```
+
+
+```{r}
+# Global variables are assigned to be used throughout the rest the script.
+# files is a global variable that has been assigned with the function paste0(). This function concatenates all 5 of the sequences' .fasta files, without the separation of a space between each string, denoted by the 0 in the function.
+files <- paste0(c("HKU14.fasta","HKU1.fasta","SARSCoV.fasta","SARSCoV2.fasta","MERS.fasta"))
+# lapply is used to apply the function readAAStringSet to files to convert its class into AAStringSet for the MSA, while returning a list in the assigned variable CoV_seq.
+#CoV_seq is a global variable.
+CoV_seq <- lapply(files,readAAStringSet)
+# Assigning CoV_seq with the do.call function allows you to call upon CoV_seq as a function, in which the arguments of the function is contain in the list.
+CoV_seq <- do.call(c,CoV_seq)
+# The class() function can be used to check the class of the variable CoV_seq.
+class(CoV_seq)
+#Running the variable CoV_seq will print the variable to see its content.
+CoV_seq
+```
+Bioinformatics Method 1: BLAST search
+To obtain the sequences used for the MSA, I performed a protein-protein BLASTp search using a chosen HKU14 spike protein sequence (AFE48827.1) for my query and selecting several chosen organisms to search for in the NCBI database. I chose SARS-CoV-2, SARS CoV, MERS, and Human coronavirus HKU1 in the BLAST search as the organisms, selecting sequences for each of their spike proteins(QGV13484, QHD43416, YP_173238, P59594) from the top hits, and obtained the individual FASTA files. The database for the sequences can be found here: https://www.ncbi.nlm.nih.gov/protein/ .
+
+The following chunk of code will perform MSA, the 2nd bioinformatics method:
+```{r}
+#The msa package contains functions which implement several multiple sequence alignment methods and functions that are able to analyze and visualize the alignment results.
+#The manual for the msa package can be found here: https://bioconductor.org/packages/devel/bioc/vignettes/msa/inst/doc/msa.pdf 
+
+# The line below performs msa on the global variable CoV_seq, assigning it to the global variable CoV_seq_alignment of class MsaAAMultipleAlignment.
+CoV_seq_alignment <- msa(CoV_seq)
+# The line below prints the MSA of CoV_seq_alignment with the entire sequence shown, indicated by the argument show=complete.
+print(CoV_seq_alignment, show="complete")
+
+# Bioinformatics method: MSA
+# Multiple sequence alignment is the alignment of several biological sequences, such as proteins or nucleic acids, in which analysis of its output allows further inferences and studies regarding the relationships between the sequences.From the alignment, observed similarity in sequences can indicate relations in function, structure, and evolution.
+```
+{10 points for adequately commenting the code}
+{10 points for description of bioinformatics method}
+{15 points for code working correctly} 
+
+The following chunk of code is used to visualize the msa results with sequence logos:
+
+```{r}
+# The msaPrettyPrint is a function from the msa package that produces a LaTeX object from the msa contained in variable CoV_seq_alignment, defined as the first argument.
+# The argument output="tex" will produce the MSA as a .tex file.
+# The argument y=c(300,600) selects the sequence range being observed in the visualization, out of the entire sequence alignment's range. This range is selected to focus on the spike proteins' receptor binding domain.
+# The argument showLogo="top" produces the sequence logo for the visualization of msa.
+# The rest of the arguments are for aesthetic purposes, in which further details and options can be found in the msa package manual (linked in the previous chunk).
+msaPrettyPrint(CoV_seq_alignment, output="tex", y=c(300,600), showNames="left", showLogo="top",
+logoColors="rasmol", shadingMode="functional", shadingModeArg="structure",
+showLegend=FALSE, askForOverwrite=FALSE)
+
+# The CoV_seq_alignment.tex latex file is uploaded and can found under the Files tab in the designated folder for the R Project. After clicking the CoV_seq_alignment.tex file to open it in R, click the Compile PDF button to produce a PDF file containing the visualization of the MSA.
+
+# Visualization of bioinformatics method: Sequence Logos
+# Sequence logos displays the patterns of the set of aligned sequences, presenting the consensus sequence with the height of each letter made proportional to its frequency.The sequence logo displays significant residues and subtle sequence patterns resulting from the sequence alignment. The visualization of sequence logos can determine the consensus sequence and the relative frequency of bases at every position within the range being observed.
+```
+
+
+Analysis of Results {25 points for correctly analyzing the data}:
+When running the BLAST search, I was able to obtain the full spike protein sequences for coronaviruses SARS-CoV-2, SARS CoV, MERS, and Human coronavirus HKU1. From these sequence entries, I obtained information on the sequence location of each of the receptor binding domains. This allowed me to focus my analysis and visualization on a crucial part of the virus' infectivity.
+
+I first tried to visualize the MSA of the entire sequence range (1000+) and was able to successfully obtain a .tex file from the msaPrettyPrint but received numerous errors when compiling the pdf for it. After some research, I found that the visualizing alignment of the entire spike protein sequence would be too overwhelming of LaTeX file to process so I decided to narrow down the MSA to visualization focused on the range containing the receptor binding domain, adjusting the argument to be y=c(300-600). After running the code to update the CoV_seq_alignment.tex file, I attempted to compile pdf again, I was returned with numerous error messages, many being repeat error messages for the same lines. 
+
+To search for where the code may have went wrong, I traced back to the packages to see if I had missed any installation necessary and whatnot. I read through the debugging page provided by tinytex's website and ran the several suggestions solutions provided for if compiling pdf was unsuccessful. The suggestions included:
+
+Updating all R and LaTeX packages
+  update.packages(ask = FALSE, checkBuilt = TRUE)
+  tinytex::tlmgr_update()
+  
+Running a code to produce additional messages to help debug the problem
+options(tinytex.verbose = TRUE)
+
+In the end, I was unable to produce visualization of my sequence alignment to be able to analyze the sequence logos for consensus sequences/bases. And so, I am unable to conclude if my hypothesis is correct or not. Because the result of my bioinformatic analysis is inconclusive, my scientific question unfortunately remains unanswered, as of December 9, 2021.
+
+
+Annotated Bibliography
+
+1: Susceptibility of rabbits to SARS-CoV-2 
+Anna Z. Mykytyn, et. al “Susceptibility of rabbits to SARS-CoV-2”, Emerging Microbes & Infections (2021), 10:1, 1-7, DOI: 10.1080/22221751.2020.1868951 
+https://www.tandfonline.com/doi/full/10.1080/22221751.2020.1868951 
+
+2: Comparison of Severe Acute Respiratory Syndrome Coronavirus 2 Spike Protein Binding to ACE2 Receptors from Human, Pets, Farm Animals, and Putative Intermediate Hosts 
+Zhai, Xiaofeng et al. “Comparison of Severe Acute Respiratory Syndrome Coronavirus 2 Spike Protein Binding to ACE2 Receptors from Human, Pets, Farm Animals, and Putative Intermediate Hosts.” Journal of virology vol. 94,15 e00831-20. 16 Jul. 2020, doi:10.1128/JVI.00831-20
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7375388/
+
+3: Machine learning methods accurately predict host specificity of coronaviruses based on spike sequences alone 
+Kuzmin, Kiril et al. “Machine learning methods accurately predict host specificity of coronaviruses based on spike sequences alone.” Biochemical and biophysical research communications vol. 533,3 (2020): 553-558. doi:10.1016/j.bbrc.2020.09.010
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7500881/
+
+4: Protein Structure and Sequence Reanalysis of 2019-nCoV Genome Refutes Snakes as Its Intermediate Host and the Unique Similarity between Its Spike Protein Insertions and HIV-1 
+	Chengxin Zhang, Wei Zheng, Xiaoqiang Huang, Eric W. Bell, Xiaogen Zhou, and Yang Zhang, Journal of Proteome Research 2020 19 (4), 1351-1360. 22 Mar. 2020, DOI: 10.1021/acs.jproteome.0c00129
+https://pubs.acs.org/doi/10.1021/acs.jproteome.0c00129?ref=pdf
+
+5: SARS-CoV-2 spike protein predicted to form stable complexes with host receptor protein orthologues from mammals 
+SD Lam, N Bordin, VP Waman, HM Scholes, P Ashford, N Sen, L van Dorp, C Rauer, NL Dawson, CSM Pang, M Abbasian, I Sillitoe, SJL Edwards, F Fraternali, JG Lees, JM Santini, CA Orengo, bioRxiv 2020.05.01.072371; doi: https://doi.org/10.1101/2020.05.01.072371
+https://www.biorxiv.org/content/10.1101/2020.05.01.072371v3.full
